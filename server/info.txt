@@ -1,0 +1,4 @@
+//controllers : 
+* filters : team / position / all employees / skill category ; for HR : role wise
+* get skills acc to my position => to add skill
+* 
