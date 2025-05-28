@@ -26,6 +26,32 @@ export const initializeDatabase = async () => {
         // await AppDataSource.getRepository(SkillUpgradeGuide).save(skillUpgradeData);
         // console.log("Skill Upgrade Guide data seeded successfully");
 
+        // //seeding skill score
+        // const employeeRepo = AppDataSource.getRepository(Employee);
+        // const employees = await employeeRepo.find(); //fetching all seeded employees
+        // // console.log("employees", employees);
+
+        // for (const emp of employees) {
+        //     const skills = emp.skill_score || {};
+        //     console.log("emp.skill_score", skills);
+
+        //     const skillValues = Object.values(skills);
+        //     console.log("skillvalues", skillValues);
+
+        //     if (skillValues.length > 0) {
+        //         const averageScore = skillValues.reduce((sum, val) => sum + val, 0) / skillValues.length;
+        //         emp.score = averageScore;
+        //         console.log("emp.score", emp.score);
+        //     }
+        //     else {
+        //         emp.score = 0;
+        //     }
+        //     console.log("emp", emp);
+        //     await employeeRepo.save(emp);
+        // }
+        // console.log("Skill scores updated successfully for all employees");
+
+
         //closing databse connection
         await AppDataSource.destroy();
         console.log("Database connection closed");

@@ -1,9 +1,9 @@
 import Hapi from '@hapi/hapi';
 import { AppDataSource } from './config/database.js';
-import { authRoutes } from './routes/auth.js';
-import { skillCategoryRoutes } from './routes/skillCategory.js';
-import { skillUpgradeGuideRoutes } from './routes/skillUpgradeGuide.js';
-import { skillMatrixRoutes } from './routes/skillMatrix.js';
+import { authRoutes } from './routes/authRoutes.js';
+import { skillCategoryRoutes } from './routes/skillCategoryRoutes.js';
+import { skillUpgradeGuideRoutes } from './routes/skillUpgradeGuideRoutes.js';
+import { skillMatrixRoutes } from './routes/skillMatrixRoutes.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -37,7 +37,7 @@ const init = async () => {
                 const decoded = jwt.verify(artifacts.token, JWT_SECRET);
                 return {
                     isValid: true,
-                    credentials: { id: decoded.id, role: decoded.role }
+                    credentials: { id: decoded.id, role: decoded.role } //credentials is set 
                 };
             } catch (err) {
                 return {
@@ -60,7 +60,7 @@ const init = async () => {
     await server.register({
         plugin: skillCategoryRoutes,
         routes: {
-            prefix: '/skill-category'
+            prefix: '/skill-categories'
         }
     });
     await server.register({

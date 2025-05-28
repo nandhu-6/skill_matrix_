@@ -1,5 +1,5 @@
 import {
-    getSkillMatrix,
+    getTeams,
     getFilteredMatrix,
     submitSkillRequest,
     getPendingRequests,
@@ -8,7 +8,8 @@ import {
     getMyRequests
 } from '../controllers/skillMatrixController.js';
 import { checkRole } from '../middlewares/auth.js';
-import Hapi from '@hapi/hapi';
+import { LEAD_HR } from '../constants/constant.js';
+
 
 const skillMatrixRoutes = {
     name: 'skill-matrix-routes',
@@ -17,53 +18,45 @@ const skillMatrixRoutes = {
             // Skill Matrix Routes
             {
                 method: 'GET',
-                path: '/api/skill-matrix',
-                handler: getSkillMatrix,
-
+                path: '/',
+                handler: getTeams,
             },
-            {
-                method: 'GET',
-                path: '/api/skill-matrix/filters',
-                handler: getFilteredMatrix,
-
-            },
+            // {
+            //     method: 'GET',
+            //     path: '/filters',
+            //     handler: getFilteredMatrix,
+            // },
 
             // Raise Request Routes
             {
                 method: 'POST',
-                path: '/api/skill-requests',
+                path: '/skill-requests',
                 handler: submitSkillRequest,
-                options: {
-                    pre: [{ method: checkRole(['employee']) }]
-                }
             },
             {
                 method: 'GET',
-                path: '/api/skill-requests/pending',
+                path: '/skill-requests/pending',
                 handler: getPendingRequests,
                 options: {
-                    pre: [{ method: checkRole(['lead', 'hr']) }]
+                    pre: [{ method: checkRole(LEAD_HR) }]
                 }
             },
             {
                 method: 'POST',
-                path: '/api/skill-requests/{requestId}/handle',
+                path: '/{requestId}/handle',
                 handler: handleSkillRequest,
                 options: {
-                    pre: [{ method: checkRole(['lead', 'hr']) }]
+                    pre: [{ method: checkRole(LEAD_HR) }]
                 }
             },
             {
                 method: 'POST',
-                path: '/api/skill-requests/{requestId}/cancel',
+                path: '/{requestId}/cancel',
                 handler: cancelSkillRequest,
-                options: {
-                    pre: [{ method: checkRole(['employee']) }]
-                }
             },
             {
                 method: 'GET',
-                path: '/api/skill-requests/my-requests',
+                path: '/my-requests',
                 handler: getMyRequests,
             }
         ]);

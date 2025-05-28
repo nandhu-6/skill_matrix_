@@ -7,17 +7,11 @@ const categoryRepo = AppDataSource.getRepository(SkillCategory);
 
 export const createSkillUpgradeGuide = async (request, h) => {
     try {
-        const { title, description, category_id, resources, steps } = request.payload;
-        const employee = request.auth.credentials;
-
-        // Only HR can create guides
-        if (employee.role !== 'hr') {
-            return h.response({ message: 'Only HR can create skill upgrade guides' }).code(403);
-        }
+        const { skill_id, skill_name, from_level, to_level, plan, resources } = request.payload;
 
         // Verify category exists
         const category = await categoryRepo.findOne({
-            where: { id: category_id }
+            where: { skill_id }
         });
 
         if (!category) {
@@ -25,12 +19,12 @@ export const createSkillUpgradeGuide = async (request, h) => {
         }
 
         const guide = guideRepo.create({
-            title,
-            description,
-            category,
+            skill_name,
+            skill_id,
+            from_level,
+            to_level,
+            plan,
             resources,
-            steps,
-            created_by: employee.id
         });
 
         await guideRepo.save(guide);
@@ -42,9 +36,7 @@ export const createSkillUpgradeGuide = async (request, h) => {
 
 export const getAllSkillUpgradeGuides = async (request, h) => {
     try {
-        const guides = await guideRepo.find({
-            relations: ['category', 'createdBy']
-        });
+        const guides = await guideRepo.find();
         return guides;
     } catch (error) {
         return h.response({ message: 'Error fetching skill upgrade guides' }).code(500);
@@ -54,9 +46,8 @@ export const getAllSkillUpgradeGuides = async (request, h) => {
 export const getSkillUpgradeGuideById = async (request, h) => {
     try {
         const { id } = request.params;
-        const guide = await guideRepo.findOne({
-            where: { id },
-            relations: ['category', 'createdBy']
+        const guide = await guideRepo.find({
+            where: { skill_id: id }
         });
 
         if (!guide) {
@@ -69,53 +60,24 @@ export const getSkillUpgradeGuideById = async (request, h) => {
     }
 };
 
-export const getGuidesByCategory = async (request, h) => {
-    try {
-        const { category_id } = request.params;
-        const guides = await guideRepo.find({
-            where: { category: { id: category_id } },
-            relations: ['category', 'createdBy']
-        });
-        return guides;
-    } catch (error) {
-        return h.response({ message: 'Error fetching guides for category' }).code(500);
-    }
-};
-
 export const updateSkillUpgradeGuide = async (request, h) => {
     try {
         const { id } = request.params;
-        const { title, description, category_id, resources, steps } = request.payload;
-        const employee = request.auth.credentials;
-
-        // Only HR can update guides
-        if (employee.role !== 'hr') {
-            return h.response({ message: 'Only HR can update skill upgrade guides' }).code(403);
-        }
+        const { skill_id, skill_name, from_level, to_level, plan, resources } = request.payload;
 
         const guide = await guideRepo.findOne({
-            where: { id },
-            relations: ['category']
+            where: { id }
         });
 
         if (!guide) {
             return h.response({ message: 'Skill upgrade guide not found' }).code(404);
         }
-
-        if (title) guide.title = title;
-        if (description) guide.description = description;
+        if (skill_id) guide.skill_id = skill_id;
+        if (skill_name) guide.skill_name = skill_name;
+        if (from_level) guide.from_level = from_level;
+        if (to_level) guide.to_level = to_level;
+        if (plan) guide.plan = plan;
         if (resources) guide.resources = resources;
-        if (steps) guide.steps = steps;
-
-        if (category_id) {
-            const category = await categoryRepo.findOne({
-                where: { id: category_id }
-            });
-            if (!category) {
-                return h.response({ message: 'Skill category not found' }).code(404);
-            }
-            guide.category = category;
-        }
 
         await guideRepo.save(guide);
         return guide;
@@ -127,12 +89,6 @@ export const updateSkillUpgradeGuide = async (request, h) => {
 export const deleteSkillUpgradeGuide = async (request, h) => {
     try {
         const { id } = request.params;
-        const employee = request.auth.credentials;
-
-        // Only HR can delete guides
-        if (employee.role !== 'hr') {
-            return h.response({ message: 'Only HR can delete skill upgrade guides' }).code(403);
-        }
 
         const guide = await guideRepo.findOne({
             where: { id }

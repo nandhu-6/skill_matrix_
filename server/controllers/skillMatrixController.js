@@ -12,23 +12,40 @@ const calculateAverageScore = (skillScore) => {
     return values.reduce((sum, val) => sum + val, 0) / values.length;
 };
 
-export const getSkillMatrix = async (request, h) => {
+export const getTeams = async (request, h) => {
     try {
         const employee = await employeeRepo.findOne({
             where: { id: request.auth.credentials.id }
         });
+        // console.log("Employee:", employee);
+
 
         let teamMembers;
         if (employee.role === 'hr') {
-            teamMembers = await employeeRepo.find({
-                select: ['id', 'name', 'position', 'skill_score', 'team', 'score']
+            teamMembers = await employeeRepo.find();
+        }
+        else if (employee.role === 'lead') {
+            const directReports = await employeeRepo.find({
+                where: { lead_id: employee.id }
             });
-        } else if (employee.role === 'lead') {
-            teamMembers = await employeeRepo.find({
-                where: { lead_id: employee.id },
-                select: ['id', 'name', 'position', 'skill_score', 'score']
-            });
-        } else {
+
+            teamMembers = [...directReports];
+
+            for (const member of directReports) {
+                if (member.role === 'lead') {
+                    const subordinates = await employeeRepo.find({
+                        where: { lead_id: member.id }
+                    });
+                    teamMembers.push(...subordinates);
+                }
+            }
+        }
+        // else if (employee.role === 'lead') {
+        //     teamMembers = await employeeRepo.find({
+        //         where: { lead_id: employee.id }
+        //     });
+        // }
+        else {
             teamMembers = [employee];
         }
 
@@ -48,8 +65,7 @@ export const getFilteredMatrix = async (request, h) => {
         if (role) query.role = role;
 
         const employees = await employeeRepo.find({
-            where: query,
-            select: ['id', 'name', 'position', 'skill_score', 'team', 'score']
+            where: query
         });
 
         if (skillCategory) {
@@ -71,20 +87,28 @@ export const submitSkillRequest = async (request, h) => {
     try {
         const { skills } = request.payload;
         const employee = await employeeRepo.findOne({
-            where: { id: request.auth.credentials.id },
-            relations: ['lead']
+            where: { id: request.auth.credentials.id }
         });
 
-        if (!employee.lead_id) {
-            return h.response({ message: 'No lead assigned' }).code(400);
-        }
+
+        // const reviewChain = [];
+        // let id = employee.id;
+        // while (id) {
+        //     const record = await employeeRepo.findOneBy({ id: id });
+        //     if (record.leadId) reviewChain.push(user.leadId);
+        //     id = record.leadId ? record.leadId : null;
+        // }
+        // if (user.hrId && user.leadId) reviewChain.push(user.hrId);
+
 
         const request = requestRepo.create({
             data: skills,
-            employee: employee,
+            emp_id: employee.id,
             status: Status.PENDING,
             current_approver_id: employee.lead_id,
-            review_chain: [employee.lead_id]
+            // review_chain: [employee.lead_id]
+            review_history:,
+            review_chain:,
         });
 
         await requestRepo.save(request);
@@ -166,7 +190,7 @@ export const handleSkillRequest = async (request, h) => {
                 const finalSkills = edited_skills || skillRequest.data;
                 employeeToUpdate.skill_score = finalSkills;
                 employeeToUpdate.score = calculateAverageScore(finalSkills);
-                
+
                 await employeeRepo.save(employeeToUpdate);
             }
         } else {
@@ -188,7 +212,7 @@ export const cancelSkillRequest = async (request, h) => {
         });
 
         const skillRequest = await requestRepo.findOne({
-            where: { 
+            where: {
                 req_id: requestId,
                 employee: { id: employee.id }
             }

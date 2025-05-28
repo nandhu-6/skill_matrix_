@@ -5,18 +5,14 @@ const skillCategoryRepo = AppDataSource.getRepository(SkillCategory);
 
 export const createSkillCategory = async (request, h) => {
     try {
-        const { name, description } = request.payload;
+        const { name, description, position } = request.payload;
         const employee = request.auth.credentials;
-
-        // Only HR can create skill categories
-        if (employee.role !== 'hr') {
-            return h.response({ message: 'Only HR can create skill categories' }).code(403);
-        }
 
         const category = skillCategoryRepo.create({
             name,
             description,
-            created_by: employee.id
+            created_by: employee.id,
+            position
         });
 
         await skillCategoryRepo.save(category);
@@ -28,9 +24,7 @@ export const createSkillCategory = async (request, h) => {
 
 export const getAllSkillCategories = async (request, h) => {
     try {
-        const categories = await skillCategoryRepo.find({
-            relations: ['createdBy']
-        });
+        const categories = await skillCategoryRepo.find();
         return categories;
     } catch (error) {
         return h.response({ message: 'Error fetching skill categories' }).code(500);
@@ -41,8 +35,7 @@ export const getSkillCategoryById = async (request, h) => {
     try {
         const { id } = request.params;
         const category = await skillCategoryRepo.findOne({
-            where: { id },
-            relations: ['createdBy']
+            where: { skill_id: id }
         });
 
         if (!category) {
@@ -57,18 +50,16 @@ export const getSkillCategoryById = async (request, h) => {
 
 export const updateSkillCategory = async (request, h) => {
     try {
-        const { id } = request.params;
-        const { name, description } = request.payload;
-        const employee = request.auth.credentials;
+        // console.log("id", request.params);
 
-        // Only HR can update skill categories
-        if (employee.role !== 'hr') {
-            return h.response({ message: 'Only HR can update skill categories' }).code(403);
-        }
+        const { id } = request.params;
+        const { name, description, position } = request.payload;
 
         const category = await skillCategoryRepo.findOne({
-            where: { id }
+            where: { skill_id: id }
         });
+        // console.log("category", category);
+
 
         if (!category) {
             return h.response({ message: 'Skill category not found' }).code(404);
@@ -76,6 +67,7 @@ export const updateSkillCategory = async (request, h) => {
 
         if (name) category.name = name;
         if (description) category.description = description;
+        if (position) category.position = position;
 
         await skillCategoryRepo.save(category);
         return category;
@@ -89,13 +81,8 @@ export const deleteSkillCategory = async (request, h) => {
         const { id } = request.params;
         const employee = request.auth.credentials;
 
-        // Only HR can delete skill categories
-        if (employee.role !== 'hr') {
-            return h.response({ message: 'Only HR can delete skill categories' }).code(403);
-        }
-
         const category = await skillCategoryRepo.findOne({
-            where: { id }
+            where: { skill_id: id }
         });
 
         if (!category) {
