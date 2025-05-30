@@ -15,24 +15,26 @@ const calculateAverageScore = (skillScore) => {
 export const getTeams = async (request, h) => {
     try {
         const employee = await employeeRepo.findOne({
-            where: { id: request.auth.credentials.id }
+            where: { id: request.auth.credentials.id },
+            relations: ['role', 'team', 'department', 'position', 'lead', 'hr']
         });
         // console.log("Employee:", employee);
 
 
         let teamMembers;
-        if (employee.role === 'hr') {
+        if (employee.role.name === 'hr') {
             teamMembers = await employeeRepo.find();
         }
-        else if (employee.role === 'lead') {
+        else if (employee.role.name === 'lead') {
             const directReports = await employeeRepo.find({
-                where: { lead_id: employee.id }
+                where: { lead_id: employee.id },
+                relations: ['role']
             });
 
             teamMembers = [...directReports];
 
             for (const member of directReports) {
-                if (member.role === 'lead') {
+                if (member.role.name === 'lead') {
                     const subordinates = await employeeRepo.find({
                         where: { lead_id: member.id }
                     });
@@ -107,8 +109,8 @@ export const submitSkillRequest = async (request, h) => {
             status: Status.PENDING,
             current_approver_id: employee.lead_id,
             // review_chain: [employee.lead_id]
-            review_history:,
-            review_chain:,
+            // review_history:,
+            // review_chain:,
         });
 
         await requestRepo.save(request);

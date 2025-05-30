@@ -35,9 +35,11 @@ const init = async () => {
         validate: async (artifacts, request, h) => {
             try {
                 const decoded = jwt.verify(artifacts.token, JWT_SECRET);
+                // console.log("Decoded JWT:", decoded);
+
                 return {
                     isValid: true,
-                    credentials: { id: decoded.id, role: decoded.role } //credentials is set 
+                    credentials: { id: decoded.id, role: decoded.role.name } //credentials is set 
                 };
             } catch (err) {
                 return {

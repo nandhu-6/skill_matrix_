@@ -34,6 +34,9 @@ export const RaiseRequest = new EntitySchema({
             enum: Object.values(Status),
             default: Status.PENDING,
         },
+        emp_id: {
+            type: 'varchar'
+        },
         current_approver_id: {
             type: 'varchar',
             nullable: true
@@ -54,8 +57,7 @@ export const RaiseRequest = new EntitySchema({
             joinColumn: {
                 name: 'emp_id'
             },
-            onDelete: 'CASCADE', //when employee is deleted, all requests raised by them are also deleted.
-            nullable: false,
+
         },
         current_approver: {
             type: 'many-to-one',
@@ -63,7 +65,6 @@ export const RaiseRequest = new EntitySchema({
             joinColumn: {
                 name: 'current_approver_id'
             },
-            nullable: true
         }
     }
 });

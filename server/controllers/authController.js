@@ -1,7 +1,11 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { AppDataSource } from '../config/database.js';
-import { Employee, Role, Position, Team, Department } from '../entities/Employee.js';
+import { Employee } from '../entities/Employee.js';
+import { TeamNames } from '../entities/Team.js';
+import { DepartmentNames } from '../entities/Department.js';
+import { PositionNames } from '../entities/Position.js';
+import { RoleNames } from '../entities/Role.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -44,29 +48,44 @@ export const login = async (request, h) => {
 
         const employee = await employeeRepo.findOne({
             where: { email },
-            select: ['id', 'name', 'email', 'password', 'role', 'team', 'lead_id', 'hr_id', 'department', 'position']
+            relations: ['role', 'team', 'department', 'position', 'lead', 'hr'],
+            select: ['id', 'name', 'email', 'password']
         });
+        // console.log("employee", employee);
 
         if (!employee) {
             return h.response({ message: 'Invalid credentials' }).code(401);
         }
 
+
         const isPasswordValid = await bcrypt.compare(password, employee.password);
         if (!isPasswordValid) {
             return h.response({ message: 'Invalid credentials' }).code(401);
         }
+        console.log("employee.role", employee);
 
         const token = jwt.sign(
-            { id: employee.id, role: employee.role },
+            { id: employee.id, role: employee.role?.name },
             JWT_SECRET,
             { expiresIn: '24h' }
         );
+
+
 
         const { password: _, ...employeeWithoutPassword } = employee;
         return {
             message: 'Login successful',
             token,
-            employee: employeeWithoutPassword
+            employee: {
+                ...employeeWithoutPassword,
+                team: employee.team ? employee.team.name : null,
+                department: employee.department ? employee.department.name : null,
+                position: employee.position ? employee.position.name : null,
+                lead: employee.lead ? employee.lead.name : null,
+                hr: employee.hr ? employee.hr.name : null,
+                role: employee.role ? employee.role.name : null,
+
+            }
         };
     } catch (error) {
         console.error('Login error:', error);
@@ -78,7 +97,8 @@ export const getProfile = async (request, h) => {
     try {
         const employee = await employeeRepo.findOne({
             where: { id: request.auth.credentials.id },
-            select: ['id', 'name', 'email', 'role', 'team', 'lead_id', 'hr_id', 'department', 'position', 'skill_score', 'score']
+            select: ['id', 'name', 'email', 'role_id', 'team_id', 'department_id', 'position_id', 'lead_id', 'hr_id', 'skill_score', 'score'],
+            relations: ['role', 'team', 'department', 'position', 'lead', 'hr']
         });
 
         if (!employee) {

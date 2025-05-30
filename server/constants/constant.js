@@ -1,7 +1,7 @@
-import { Role } from '../entities/Employee.js';
-const HR = [Role.HR];
-const EMPLOYEE = [Role.EMPLOYEE];
-const LEAD_HR = [Role.LEAD, Role.HR];
+import { RoleNames } from "../entities/Role.js";
+const HR = [RoleNames.HR];
+const EMPLOYEE = [RoleNames.EMPLOYEE];
+const LEAD_HR = [RoleNames.LEAD, RoleNames.HR];
 
 
 

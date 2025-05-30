@@ -1,29 +1,5 @@
 import { EntitySchema } from 'typeorm';
 
-export const Position = {
-    FRONTEND: "frontend",
-    BACKEND: "backend",
-    TESTING: "testing",
-    HR: "hr",
-}
-
-export const Role = {
-    EMPLOYEE: "employee",
-    LEAD: "lead",
-    HR: "hr"
-}
-
-export const Team = {
-    INFORIVER: "inforiver",
-    VALQ: "valq"
-}
-
-export const Department = {
-    PRODUCT: "product",
-    HR: "hr"
-}
-
-
 export const Employee = new EntitySchema({
     name: "Employee",
     columns: {
@@ -43,15 +19,6 @@ export const Employee = new EntitySchema({
             nullable: true,
             select: false
         },
-        role: {
-            type: "enum",
-            enum: Object.values(Role)
-        },
-        team: {
-            type: "enum",
-            enum: Object.values(Team),
-            nullable: true
-        },
         lead_id: {
             type: 'varchar',
             nullable: true
@@ -60,13 +27,20 @@ export const Employee = new EntitySchema({
             type: 'varchar',
             nullable: true
         },
-        department: {
-            type: "enum",
-            enum: Object.values(Department)
+        role_id: {
+            type: 'varchar',
         },
-        position: {
-            type: "enum",
-            enum: Object.values(Position)
+        team_id: {
+            type: 'varchar',
+            nullable: true
+        },
+        department_id: {
+            type: 'varchar',
+            nullable: true
+        },
+        position_id: {
+            type: 'varchar',
+            nullable: true
         },
         created_at: {
             type: 'timestamp',
@@ -85,6 +59,39 @@ export const Employee = new EntitySchema({
         }
     },
     relations: {
+        role: {
+            target: "Role",
+            type: "many-to-one",
+            joinColumn: {
+                name: "role_id"
+            },
+            onDelete: "SET NULL" //if role is deleted set employee's role to null
+        },
+        team: {
+            target: "Team",
+            type: "many-to-one",
+            joinColumn: {
+                name: "team_id"
+            },
+            nullable: true,
+            onDelete: "SET NULL" //if team is deleted set employee's team to null
+        },
+        department: {
+            target: "Department",
+            type: "many-to-one",
+            joinColumn: {
+                name: "department_id"
+            },
+            onDelete: "SET NULL" //if department is deleted set employee's department to null
+        },
+        position: {
+            target: "Position",
+            type: "many-to-one",
+            joinColumn: {
+                name: "position_id"
+            },
+            onDelete: "SET NULL" //if position is deleted set employee's position to null
+        },
         lead: {
             target: "Employee",
             type: "many-to-one",
